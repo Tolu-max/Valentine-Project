@@ -3,7 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Valentine or Nah? — a fun, premium, vibe-coded Valentine mini-app." />
+    <meta
+      name="description"
+      content="Create a cute Valentine link and send it to someone special. A fun, premium Valentine mini-app with a shareable YES/NO moment."
+    />
+    <link rel="canonical" href="https://valentine-project-2026-sigma.vercel.app/" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#050312" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Valentine or Nah?" />
+    <meta
+      property="og:description"
+      content="Create a cute Valentine link and send it to someone special. A fun, premium YES/NO moment."
+    />
+    <meta property="og:url" content="https://valentine-project-2026-sigma.vercel.app/" />
+    <meta property="og:image" content="https://valentine-project-2026-sigma.vercel.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/svg+xml" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Valentine or Nah?" />
+    <meta
+      name="twitter:description"
+      content="Create a cute Valentine link and send it to someone special. A fun, premium YES/NO moment."
+    />
+    <meta name="twitter:image" content="https://valentine-project-2026-sigma.vercel.app/og-image.svg" />
     <title>Valentine or Nah?</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -45,6 +71,7 @@
           <section class="screen is-active" id="screen-welcome" data-screen="welcome">
             <h1 class="title">Hi 👋</h1>
             <p class="sub">What’s your name?</p>
+            <p class="sub sub--hint">Create a cute Valentine link and send it to someone special.</p>
 
             <div class="field">
               <label class="field__label" for="nameInput">Your name</label>
@@ -98,6 +125,7 @@
               </button>
             </div>
             <div class="confirmline" id="statusConfirm" hidden>Noted ✅</div>
+            <div class="field__error" id="statusError" hidden>Please choose a status.</div>
 
             <div class="actions">
               <button class="btn btn--ghost" id="backToWelcomeBtn" type="button">Back</button>
@@ -153,6 +181,10 @@
                 <button class="btn btn--soft" id="xBtn" type="button">Share on X</button>
               </div>
 
+              <div class="actions">
+                <button class="btn btn--ghost" id="startOverBtn" type="button">Start Over</button>
+              </div>
+
               <div class="result__hint" id="shareHint">
                 Tip: This link opens the receiver view automatically. It’s basically a tiny love portal.
               </div>
@@ -192,6 +224,28 @@
             </div>
           </section>
         </div>
+
+        <footer class="footer" aria-label="Footer">
+          <div class="footer__row">
+            <div class="footer__credit">
+              Made with <span aria-hidden="true">❤️</span> by
+              <a class="footer__link" href="https://tolu-portfolio-drab.vercel.app/" target="_blank" rel="noopener noreferrer"
+                >samuel</a
+              >.
+            </div>
+            <div class="footer__links">
+              <a
+                class="footer__link"
+                href="https://github.com/Tolu-max/Valentine-Project"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitHub</a
+              >
+              <a class="footer__link" href="https://x.com/samcyprto" target="_blank" rel="noopener noreferrer">Twitter</a>
+            </div>
+          </div>
+          <div class="footer__note">No data is stored. Links are temporary.</div>
+        </footer>
       </section>
     </main>
 

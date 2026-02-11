@@ -423,6 +423,8 @@ function resetGeneratorForm() {
   const toGenerateBtn = qs("#toGenerateBtn");
   const nameError = qs("#nameError");
   const statusConfirm = qs("#statusConfirm");
+  const statusError = qs("#statusError");
+  const options = qs(".options");
   const nameField = nameInput ? nameInput.closest(".field") : null;
 
   if (nameInput) nameInput.value = "";
@@ -433,6 +435,8 @@ function resetGeneratorForm() {
   if (generatedUrl) generatedUrl.value = "";
   if (nameError) setHidden(nameError, true);
   if (statusConfirm) setHidden(statusConfirm, true);
+  if (statusError) setHidden(statusError, true);
+  if (options) options.classList.remove("is-error");
   if (nameField) nameField.classList.remove("is-error");
 
   const statusButtons = qsa("[data-status]");
@@ -460,10 +464,13 @@ function bindGeneratorOnce() {
   const copyBtn = qs("#copyBtn");
   const waBtn = qs("#waBtn");
   const xBtn = qs("#xBtn");
+  const startOverBtn = qs("#startOverBtn");
   const nameEcho = qs("#nameEcho");
   const statusButtons = qsa("[data-status]");
   const nameError = qs("#nameError");
   const statusConfirm = qs("#statusConfirm");
+  const statusError = qs("#statusError");
+  const options = qs(".options");
   const nameField = nameInput ? nameInput.closest(".field") : null;
 
   function clearNameError() {
@@ -477,6 +484,20 @@ function bindGeneratorOnce() {
       nameField.classList.remove("is-error");
       void nameField.offsetWidth;
       nameField.classList.add("is-error");
+    }
+  }
+
+  function clearStatusError() {
+    if (statusError) setHidden(statusError, true);
+    if (options) options.classList.remove("is-error");
+  }
+
+  function showStatusError() {
+    if (statusError) setHidden(statusError, false);
+    if (options) {
+      options.classList.remove("is-error");
+      void options.offsetWidth;
+      options.classList.add("is-error");
     }
   }
 
@@ -500,9 +521,11 @@ function bindGeneratorOnce() {
 
   function goGenerate() {
     if (!state.status) {
+      showStatusError();
       showToast("Pick a status (for the plot) 💞");
       return;
     }
+    clearStatusError();
     setActiveScreen("generate");
     window.setTimeout(() => toInput.focus(), prefersReducedMotion() ? 0 : 220);
   }
@@ -513,6 +536,7 @@ function bindGeneratorOnce() {
     for (const b of statusButtons) b.setAttribute("aria-checked", b === btn ? "true" : "false");
     toGenerateBtn.disabled = false;
     qs("#statusChip").textContent = `status: ${statusLabel(value)}`;
+    clearStatusError();
     if (!prefersReducedMotion()) {
       btn.classList.remove("is-bounce");
       void btn.offsetWidth;
@@ -553,7 +577,15 @@ function bindGeneratorOnce() {
     if (!state.name) {
       setActiveScreen("welcome");
       nameInput.focus();
+      showNameError();
       showToast("Name first ✨");
+      return;
+    }
+
+    if (!state.status) {
+      setActiveScreen("status");
+      showStatusError();
+      showToast("Pick a status (for the plot) 💞");
       return;
     }
 
@@ -570,11 +602,20 @@ function bindGeneratorOnce() {
 
     copyBtn.onclick = async () => {
       const ok = await copyToClipboard(url);
-      showToast(ok ? "Copied ✨" : "Copy failed (skill issue)");
+      showToast(ok ? "Link copied ✅" : "Couldn’t copy");
     };
     waBtn.onclick = () => shareWhatsApp(url, state.name, state.to);
     xBtn.onclick = () => shareX(url, state.name, state.to);
   });
+
+  if (startOverBtn) {
+    startOverBtn.addEventListener("click", () => {
+      window.history.replaceState({}, "", window.location.pathname);
+      initGeneratorUI();
+      setActiveScreen("welcome");
+      window.setTimeout(() => nameInput.focus(), prefersReducedMotion() ? 0 : 120);
+    });
+  }
 }
 
 function initGeneratorUI() {
