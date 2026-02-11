@@ -12,7 +12,16 @@ const bound = {
   generator: false,
   receiver: false,
   theme: false,
+  intro: false,
+  bgParallax: false,
 };
+
+function isLowPerfDevice() {
+  const cores = Number(navigator.hardwareConcurrency || 8);
+  const mem = Number(navigator.deviceMemory || 8);
+  const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  return mem <= 4 || cores <= 4 || (isCoarse && (mem <= 6 || cores <= 6));
+}
 
 function prefersReducedMotion() {
   return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -73,17 +82,17 @@ function buildFloatingHearts() {
   if (!host) return;
   host.innerHTML = "";
 
-  const count = prefersReducedMotion() ? 10 : 22;
+  const count = prefersReducedMotion() ? 8 : isLowPerfDevice() ? 12 : 18;
   for (let i = 0; i < count; i++) {
     const el = document.createElement("div");
     el.className = "heart";
-    const size = `${10 + Math.random() * 28}px`;
+    const size = `${10 + Math.random() * (isLowPerfDevice() ? 20 : 28)}px`;
     const x = `${Math.random() * 100}vw`;
     const o = (0.18 + Math.random() * 0.5).toFixed(2);
     const rot = `${-25 + Math.random() * 50}deg`;
-    const dur = `${9 + Math.random() * 10}s`;
+    const dur = `${(isLowPerfDevice() ? 12 : 9) + Math.random() * 10}s`;
     const delay = `${-(Math.random() * 12)}s`;
-    const blur = `${Math.random() * 1.2}px`;
+    const blur = `${isLowPerfDevice() ? 0 : Math.random() * 1.2}px`;
 
     el.style.setProperty("--size", size);
     el.style.setProperty("--x", x);
@@ -97,13 +106,154 @@ function buildFloatingHearts() {
 }
 
 function setActiveScreen(name) {
-  const screens = qsa(".screen");
-  for (const s of screens) {
-    const isTarget = s.dataset.screen === name;
-    s.classList.toggle("is-active", isTarget);
-    s.setAttribute("aria-hidden", isTarget ? "false" : "true");
+  const current = qs(".screen.is-active");
+  const next = qs(`.screen[data-screen="${name}"]`);
+  if (!next) return;
+  if (current && current === next) {
+    updateProgress(name);
+    return;
   }
+
+  const all = qsa(".screen");
+  if (prefersReducedMotion()) {
+    for (const s of all) {
+      const isTarget = s === next;
+      s.classList.toggle("is-active", isTarget);
+      s.classList.remove("is-exiting", "is-entering");
+      s.setAttribute("aria-hidden", isTarget ? "false" : "true");
+    }
+    updateProgress(name);
+    return;
+  }
+
+  for (const s of all) {
+    if (s !== next && s !== current) {
+      s.classList.remove("is-active", "is-exiting", "is-entering");
+      s.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  if (current) {
+    current.classList.add("is-exiting");
+    current.classList.remove("is-entering");
+    current.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      current.classList.remove("is-active", "is-exiting");
+    }, 240);
+  }
+
+  next.classList.add("is-active");
+  next.classList.remove("is-exiting");
+  next.classList.add("is-entering");
+  next.setAttribute("aria-hidden", "false");
+  window.setTimeout(() => next.classList.remove("is-entering"), 460);
   updateProgress(name);
+}
+
+function wait(ms) {
+  return new Promise((r) => window.setTimeout(r, ms));
+}
+
+async function runTypewriterIntro() {
+  const screen = qs("#screen-welcome");
+  if (!screen) return;
+
+  const title = qs(".title", screen);
+  const question = qs(".sub:not(.sub--hint)", screen);
+  const nameInput = qs("#nameInput");
+
+  if (!title || !question) return;
+
+  const hiText = "Hi 👋";
+  const qText = "What’s your name?";
+
+  screen.classList.add("is-intro");
+  screen.classList.remove("is-intro-done");
+
+  title.textContent = "";
+  question.textContent = "";
+
+  const cursor = document.createElement("span");
+  cursor.className = "type-cursor";
+
+  async function typeInto(el, text) {
+    el.textContent = "";
+    el.appendChild(cursor);
+    for (const ch of text) {
+      el.insertBefore(document.createTextNode(ch), cursor);
+      await wait(34 + Math.random() * 20);
+    }
+  }
+
+  await typeInto(title, hiText);
+  await wait(160);
+  await typeInto(question, qText);
+  await wait(220);
+  cursor.remove();
+
+  screen.classList.add("is-intro-done");
+  window.setTimeout(() => nameInput && nameInput.focus(), 60);
+}
+
+function initIntroTypewriterOnce() {
+  if (bound.intro) return;
+  bound.intro = true;
+
+  const screen = qs("#screen-welcome");
+  if (!screen) return;
+
+  const title = qs(".title", screen);
+  const question = qs(".sub:not(.sub--hint)", screen);
+  if (!title || !question) return;
+
+  if (prefersReducedMotion()) {
+    title.textContent = "Hi 👋";
+    question.textContent = "What’s your name?";
+    screen.classList.add("is-intro", "is-intro-done");
+    const nameInput = qs("#nameInput");
+    window.setTimeout(() => nameInput && nameInput.focus(), 0);
+    return;
+  }
+
+  runTypewriterIntro();
+}
+
+function initBackgroundParallaxOnce() {
+  if (bound.bgParallax) return;
+  bound.bgParallax = true;
+  if (prefersReducedMotion()) return;
+  if (!window.matchMedia || !window.matchMedia("(pointer: fine)").matches) return;
+
+  const root = document.documentElement;
+  let tx = 0;
+  let ty = 0;
+  let raf = 0;
+
+  function apply() {
+    raf = 0;
+    root.style.setProperty("--bgx", `${tx.toFixed(2)}px`);
+    root.style.setProperty("--bgy", `${ty.toFixed(2)}px`);
+    root.style.setProperty("--bgx2", `${(-tx * 0.55).toFixed(2)}px`);
+    root.style.setProperty("--bgy2", `${(-ty * 0.55).toFixed(2)}px`);
+  }
+
+  function onMove(e) {
+    const x = e.clientX / Math.max(1, window.innerWidth) - 0.5;
+    const y = e.clientY / Math.max(1, window.innerHeight) - 0.5;
+    tx = x * 10;
+    ty = y * 8;
+    if (!raf) raf = window.requestAnimationFrame(apply);
+  }
+
+  function reset() {
+    tx = 0;
+    ty = 0;
+    if (!raf) raf = window.requestAnimationFrame(apply);
+  }
+
+  window.addEventListener("pointermove", onMove, { passive: true });
+  window.addEventListener("pointerleave", reset, { passive: true });
+  window.addEventListener("blur", reset, { passive: true });
 }
 
 function initMicroInteractions() {
@@ -348,11 +498,17 @@ function renderReceiver(params) {
   window.setTimeout(() => {
     setHidden(qEl, false);
     setHidden(actions, false);
+    if (actions) {
+      actions.classList.remove("is-pop");
+      void actions.offsetWidth;
+      actions.classList.add("is-pop");
+      window.setTimeout(() => actions.classList.remove("is-pop"), 520);
+    }
     if (msg) {
       msgEl.textContent = `“${msg}”`;
       setHidden(msgEl, false);
     }
-  }, prefersReducedMotion() ? 0 : 650);
+  }, prefersReducedMotion() ? 0 : 1000);
 }
 
 function showOutcome({ kind }) {
@@ -635,7 +791,7 @@ function initReceiverUI(params) {
   bound.receiver = true;
 
   let noDodges = 0;
-  const maxDodges = 3;
+  const maxDodges = 4;
 
   function pickDodgeTransform() {
     const rect = noBtn.getBoundingClientRect();
@@ -644,8 +800,8 @@ function initReceiverUI(params) {
     const viewH = window.innerHeight;
 
     for (let i = 0; i < 10; i++) {
-      const dx = Math.round((Math.random() * 2 - 1) * 150);
-      const dy = Math.round((Math.random() * 2 - 1) * 90);
+      const dx = Math.round((Math.random() * 2 - 1) * 90);
+      const dy = Math.round((Math.random() * 2 - 1) * 60);
       const next = { left: rect.left + dx, right: rect.right + dx, top: rect.top + dy, bottom: rect.bottom + dy };
       const ok =
         next.left >= margin &&
@@ -666,10 +822,10 @@ function initReceiverUI(params) {
     noDodges += 1;
     const { dx, dy } = pickDodgeTransform();
     noBtn.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-    noBtn.classList.remove("is-dodging");
+    noBtn.classList.remove("is-teleporting");
     void noBtn.offsetWidth;
-    noBtn.classList.add("is-dodging");
-    window.setTimeout(() => noBtn.classList.remove("is-dodging"), 380);
+    noBtn.classList.add("is-teleporting");
+    window.setTimeout(() => noBtn.classList.remove("is-teleporting"), 380);
     if (noDodges >= maxDodges) {
       window.setTimeout(() => {
         noBtn.style.transform = "";
@@ -697,14 +853,24 @@ function initReceiverUI(params) {
 
 function initApp() {
   initTheme();
+  if (isLowPerfDevice()) document.documentElement.dataset.perf = "low";
   buildFloatingHearts();
   initMicroInteractions();
+  initBackgroundParallaxOnce();
 
   const themeToggle = qs("#themeToggle");
   if (!bound.theme) {
     bound.theme = true;
     themeToggle.addEventListener("click", toggleTheme);
   }
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      const paused = document.hidden;
+      document.documentElement.dataset.paused = paused ? "true" : "false";
+    },
+    { passive: true },
+  );
 
   const params = new URLSearchParams(window.location.search);
   const hasReceiver = params.has("from") && safeText(params.get("from"), "").length > 0;
@@ -716,8 +882,7 @@ function initApp() {
 
   initGeneratorUI();
   setActiveScreen("welcome");
-  const nameInput = qs("#nameInput");
-  window.setTimeout(() => nameInput.focus(), prefersReducedMotion() ? 0 : 220);
+  initIntroTypewriterOnce();
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
