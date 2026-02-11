@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Valentine or Nah? — a fun, premium, vibe-coded Valentine mini-app." />
+    <title>Valentine or Nah?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script defer src="./script.js"></script>
+  </head>
+  <body>
+    <div class="bg">
+      <div class="bg__gradient" aria-hidden="true"></div>
+      <div class="bg__noise" aria-hidden="true"></div>
+      <div class="bg__hearts" aria-hidden="true" id="hearts"></div>
+    </div>
+
+    <main class="app" id="app">
+      <section class="card" aria-live="polite">
+        <div class="progress" aria-hidden="true">
+          <div class="progress__bar" id="progressBar"></div>
+        </div>
+
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand__mark" aria-hidden="true">💘</div>
+            <div class="brand__text">
+              <div class="brand__title">Valentine or Nah?</div>
+            </div>
+          </div>
+
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme">
+            <span class="icon-btn__icon" aria-hidden="true">◐</span>
+          </button>
+        </div>
+
+        <div class="screens" id="screens">
+          <section class="screen is-active" id="screen-welcome" data-screen="welcome">
+            <h1 class="title">Hi 👋</h1>
+            <p class="sub">What’s your name?</p>
+
+            <div class="field">
+              <label class="field__label" for="nameInput">Your name</label>
+              <input
+                class="field__input"
+                id="nameInput"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="e.g., John"
+                maxlength="30"
+                inputmode="text"
+              />
+              <div class="field__hint" id="nameHint">This makes it feel personal. Also: main character energy.</div>
+              <div class="field__error" id="nameError" hidden>Please enter your name.</div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn--primary" id="toStatusBtn" type="button">
+                Continue
+                <span class="btn__spark" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="screen" id="screen-status" data-screen="status" aria-hidden="true">
+            <h2 class="title">Hey <span class="inline-accent" id="nameEcho">you</span> — what’s your status?</h2>
+            <p class="sub">No judgment. Just vibes.</p>
+
+            <div class="options" role="radiogroup" aria-label="Relationship status">
+              <button class="option-card" type="button" data-status="taken" role="radio" aria-checked="false">
+                <span class="option-card__left">
+                  <span class="option-card__emoji" aria-hidden="true">💖</span>
+                  <span class="option-card__label">Taken</span>
+                </span>
+                <span class="option-card__check" aria-hidden="true">✓</span>
+              </button>
+              <button class="option-card" type="button" data-status="single" role="radio" aria-checked="false">
+                <span class="option-card__left">
+                  <span class="option-card__emoji" aria-hidden="true">💔</span>
+                  <span class="option-card__label">Single</span>
+                </span>
+                <span class="option-card__check" aria-hidden="true">✓</span>
+              </button>
+              <button class="option-card" type="button" data-status="complicated" role="radio" aria-checked="false">
+                <span class="option-card__left">
+                  <span class="option-card__emoji" aria-hidden="true">😵</span>
+                  <span class="option-card__label">It’s complicated</span>
+                </span>
+                <span class="option-card__check" aria-hidden="true">✓</span>
+              </button>
+            </div>
+            <div class="confirmline" id="statusConfirm" hidden>Noted ✅</div>
+
+            <div class="actions">
+              <button class="btn btn--ghost" id="backToWelcomeBtn" type="button">Back</button>
+              <button class="btn btn--primary" id="toGenerateBtn" type="button" disabled>
+                Continue
+                <span class="btn__spark" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="screen" id="screen-generate" data-screen="generate" aria-hidden="true">
+            <h2 class="title">Want to ask someone to be your Valentine?</h2>
+            <p class="sub">Craft the cutest link in 10 seconds.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label class="field__label" for="toInput">Their name (optional)</label>
+                <input class="field__input" id="toInput" type="text" placeholder="e.g., Mary" maxlength="30" />
+              </div>
+              <div class="field">
+                <label class="field__label" for="msgInput">Your message (optional)</label>
+                <textarea
+                  class="field__input field__input--textarea"
+                  id="msgInput"
+                  rows="3"
+                  placeholder="e.g., Be my Valentine 💗"
+                  maxlength="140"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn--ghost" id="backToStatusBtn" type="button">Back</button>
+              <button class="btn btn--primary" id="generateLinkBtn" type="button">
+                Generate Link
+                <span class="btn__spark" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="result" id="linkResult" hidden>
+              <div class="result__top">
+                <div class="result__label">Your link</div>
+                <div class="chip" id="statusChip">status: —</div>
+              </div>
+
+              <div class="copyrow">
+                <input class="copyrow__input" id="generatedUrl" type="text" readonly />
+                <button class="btn btn--soft" id="copyBtn" type="button">Copy Link</button>
+              </div>
+
+              <div class="share">
+                <button class="btn btn--soft" id="waBtn" type="button">Share on WhatsApp</button>
+                <button class="btn btn--soft" id="xBtn" type="button">Share on X</button>
+              </div>
+
+              <div class="result__hint" id="shareHint">
+                Tip: This link opens the receiver view automatically. It’s basically a tiny love portal.
+              </div>
+            </div>
+          </section>
+
+          <section class="screen" id="screen-receiver" data-screen="receiver" aria-hidden="true">
+            <div class="receiver">
+              <div class="receiver__from" id="receiverFrom">Someone</div>
+              <h2 class="title receiver__title">
+                <span class="receiver__intro" id="receiverIntro">is asking you something…</span>
+                <span class="receiver__q" id="receiverQuestion" hidden>Will you be my Valentine?</span>
+              </h2>
+
+              <p class="sub" id="receiverMsg" hidden></p>
+
+              <div class="actions receiver__actions" id="receiverActions" hidden>
+                <button class="btn btn--primary" id="yesBtn" type="button">
+                  YES 💚
+                  <span class="btn__spark" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn--ghost" id="noBtn" type="button">NO 🙃</button>
+              </div>
+
+              <div class="outcome" id="outcome" hidden>
+                <div class="outcome__emoji" id="outcomeEmoji" aria-hidden="true">💘</div>
+                <div class="outcome__title" id="outcomeTitle">Yay!</div>
+                <div class="outcome__text" id="outcomeText"></div>
+
+                <div class="outcome__actions" id="outcomeActions">
+                  <button class="btn btn--primary" id="shareOwnBtn" type="button">
+                    Make my own link
+                    <span class="btn__spark" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  </body>
+</html>
